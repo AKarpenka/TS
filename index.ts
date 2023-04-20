@@ -1,57 +1,72 @@
-const electricityUserData = {
-	readings: 95,
-	units: "kWt",
-	mode: "double",
+// структура данных склада с одеждой
+
+type ValidAmount = "empty" | number;
+
+interface IClothesWarehouse {
+	jackets: ValidAmount;
+	hats: ValidAmount;
+	socks: ValidAmount;
+	pants: ValidAmount;
+}
+
+// структура данных склада с канцтоварами
+
+interface IStationeryWarehouse {
+	scissors: ValidAmount;
+	paper: "empty" | boolean;
+}
+
+// структура данных склада с бытовой техникой
+
+interface IAppliancesWarehouse {
+	dishwashers: ValidAmount;
+	cookers: ValidAmount;
+	mixers: ValidAmount;
+}
+
+// общая структура данных, наследует все данные из трех выше
+// + добавляет свои
+
+interface ITotalWarehouse extends IClothesWarehouse, IStationeryWarehouse, IAppliancesWarehouse {
+	deficit?: boolean;
+	date?: Date;
+}
+
+// главный объект со всеми данными, должен подходить под формат TotalWarehouse
+
+const totalData: ITotalWarehouse = {
+	jackets: 5,
+	hats: "empty", 
+	socks: "empty",
+	pants: 15,
+	scissors: 15,
+	paper: true,
+	dishwashers: 3,
+	cookers: "empty",
+	mixers: 14,
 };
 
-const waterUserData = {
-	readings: 3,
-	units: "m3",
-};
+// Реализуйте функцию, которая принимает в себя главный объект totalData нужного формата
+// и возвращает всегда строку
+// Функция должна отфильтровать данные из объекта и оставить только те названия товаров, у которых значение "empty"
+// и поместить их в эту строку. Если таких товаров нет - возвращается другая строка (см ниже)
 
-const elRate: number = 0.45;
-const wRate: number = 2;
+// С данным объектом totalData строка будет выглядеть:
+// "We need this items: hats, socks, cookers"
+// Товары через запятую, в конце её не должно быть. Пробел после двоеточия, в конце строки его нет.
 
-const monthPayments: number[] = [0,0];
+function printReport(data: ITotalWarehouse): string {
+	let res: string[] = [];
 
-const calculatePayments = (elData: { 
-							readings: number;
-							mode: string;
-						}, 
-						wData: { 
-							readings: number;
-						}, 
-						elRate: number, 
-						wRate: number): void => {
-	if (elData.mode === "double" && elData.readings < 50) {
-		monthPayments[0] = elData.readings * elRate * 0.7;
-	} else {
-		monthPayments[0] = elData.readings * elRate;
+	for (let key in data) {
+		data[key as keyof ITotalWarehouse] === "empty" && res.push(key);
 	}
 
-	monthPayments[1] = wData.readings * wRate;
-};
+	if(res.length > 0) {
+		return `We need this items: ${res.join(', ')}`;
+	} else {
+		return "Everything fine";
+	}
+}
 
-calculatePayments(electricityUserData, waterUserData, elRate, wRate);
-
-const sendInvoice = ([elData, wData]: number[], 
-	electricityUserData: {
-		readings: number;
-		units: string;
-	}, waterUserData: {
-		readings: number;
-		units: string;
-	}): string => {
-		
-	const text = `    Hello!
-    This month you used ${electricityUserData.readings} ${electricityUserData.units} of electricity
-    It will cost: ${elData}€
-    
-    This month you used ${waterUserData.readings} ${waterUserData.units} of water
-    It will cost: ${wData}€`;
-
-	return text;
-};
-
-console.log(sendInvoice(monthPayments, electricityUserData, waterUserData));
-
+console.log(printReport(totalData));
