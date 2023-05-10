@@ -1,72 +1,68 @@
-// структура данных склада с одеждой
 
-type ValidAmount = "empty" | number;
-
-interface IClothesWarehouse {
-	jackets: ValidAmount;
-	hats: ValidAmount;
-	socks: ValidAmount;
-	pants: ValidAmount;
+// Перечисление с названием TypesOfMedia, которое включает строчные типы video, audio
+enum TypesOfMedia {
+	video = "video",
+	audio = "audio"
 }
 
-// структура данных склада с канцтоварами
-
-interface IStationeryWarehouse {
-	scissors: ValidAmount;
-	paper: "empty" | boolean;
+// Перечисление с названием FormatsOfMedia, которое включает строчные видео-форматы: .mp4, .mov, .mkv, .flv, .webM
+enum FormatsOfMedia {
+	mp4 = ".mp4",
+	mov = ".mov", 
+	mkv = ".mkv", 
+	flv = ".flv", 
+	webM = ".webM"
 }
 
-// структура данных склада с бытовой техникой
-
-interface IAppliancesWarehouse {
-	dishwashers: ValidAmount;
-	cookers: ValidAmount;
-	mixers: ValidAmount;
+// Описание интерфейса, в котором:
+// name - строка
+// type - один из перечисления выше
+// format = один из перечисления выше
+// subtitles - необязательное поле типа строка
+// marks - необязательное поле неизвестного типа
+interface IDescription {
+	name: string;
+	type: TypesOfMedia;
+	format: FormatsOfMedia;
+	subtitles?: string;
+	marks?: unknown;
 }
 
-// общая структура данных, наследует все данные из трех выше
-// + добавляет свои
-
-interface ITotalWarehouse extends IClothesWarehouse, IStationeryWarehouse, IAppliancesWarehouse {
-	deficit?: boolean;
-	date?: Date;
-}
-
-// главный объект со всеми данными, должен подходить под формат TotalWarehouse
-
-const totalData: ITotalWarehouse = {
-	jackets: 5,
-	hats: "empty", 
-	socks: "empty",
-	pants: 15,
-	scissors: 15,
-	paper: true,
-	dishwashers: 3,
-	cookers: "empty",
-	mixers: 14,
-};
-
-// Реализуйте функцию, которая принимает в себя главный объект totalData нужного формата
-// и возвращает всегда строку
-// Функция должна отфильтровать данные из объекта и оставить только те названия товаров, у которых значение "empty"
-// и поместить их в эту строку. Если таких товаров нет - возвращается другая строка (см ниже)
-
-// С данным объектом totalData строка будет выглядеть:
-// "We need this items: hats, socks, cookers"
-// Товары через запятую, в конце её не должно быть. Пробел после двоеточия, в конце строки его нет.
-
-function printReport(data: ITotalWarehouse): string {
-	let res: string[] = [];
-
-	for (let key in data) {
-		data[key as keyof ITotalWarehouse] === "empty" && res.push(key);
+function playMedia(
+	{ name, type, format, subtitles, marks }: IDescription = {
+		name: "example",
+		type: TypesOfMedia.audio,
+		format: FormatsOfMedia.mov
 	}
+): string {
+	let marksLog: string;
 
-	if(res.length > 0) {
-		return `We need this items: ${res.join(', ')}`;
+    // Создать функционал, что если marks - это массив, то "сложить" все эелементы в одну строку и поместить в marksLog
+    // Если это строка, то просто поместить её в marksLog
+    // Если что-то другое - то marksLog = "Unsupported type of marks"
+    // Не допускайте any!
+
+	if(Array.isArray(marks)) {
+		marksLog = marks.join(', ');
+	} else if(typeof marks === 'string') {
+		marksLog = marks;
 	} else {
-		return "Everything fine";
+		marksLog = "Unsupported type of marks";
 	}
+
+	console.log(`
+	Media ${name}${format} is ${type}
+    	Marks: ${marksLog}
+    	Subtitles: ${subtitles ?? "none"}`);
+    // помните что это за оператор ??
+
+	return "Media started";
 }
 
-console.log(printReport(totalData));
+playMedia({
+	name: "WoW",
+	format: FormatsOfMedia.mp4,
+	type: TypesOfMedia.audio,
+	subtitles: "hmhmhm hmhmhm doh",
+	marks: ["4:30", "5:40"],
+});
