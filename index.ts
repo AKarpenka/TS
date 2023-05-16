@@ -1,68 +1,61 @@
-
-// Перечисление с названием TypesOfMedia, которое включает строчные типы video, audio
-enum TypesOfMedia {
-	video = "video",
-	audio = "audio"
+interface IAnimals {
+	animal: 'cat' | 'dog' | 'bird',
+    breed: string,
+    sterilized?: string
 }
 
-// Перечисление с названием FormatsOfMedia, которое включает строчные видео-форматы: .mp4, .mov, .mkv, .flv, .webM
-enum FormatsOfMedia {
-	mp4 = ".mp4",
-	mov = ".mov", 
-	mkv = ".mkv", 
-	flv = ".flv", 
-	webM = ".webM"
+// Response #1
+interface IAvailableAnimal extends IAnimals{
+	location: string,
+	age?: number,
+	available: boolean
 }
 
-// Описание интерфейса, в котором:
-// name - строка
-// type - один из перечисления выше
-// format = один из перечисления выше
-// subtitles - необязательное поле типа строка
-// marks - необязательное поле неизвестного типа
-interface IDescription {
-	name: string;
-	type: TypesOfMedia;
-	format: FormatsOfMedia;
-	subtitles?: string;
-	marks?: unknown;
+// Response #2
+interface INotAvailableAnimal {
+	message: string,
+	nextUpdateIn: Date,
+	notAvailable: boolean
 }
 
-function playMedia(
-	{ name, type, format, subtitles, marks }: IDescription = {
-		name: "example",
-		type: TypesOfMedia.audio,
-		format: FormatsOfMedia.mov
-	}
-): string {
-	let marksLog: string;
+function isAvailable(response: IAvailableAnimal | INotAvailableAnimal): response is IAvailableAnimal {
+	return "available" in response
+}
 
-    // Создать функционал, что если marks - это массив, то "сложить" все эелементы в одну строку и поместить в marksLog
-    // Если это строка, то просто поместить её в marksLog
-    // Если что-то другое - то marksLog = "Unsupported type of marks"
-    // Не допускайте any!
+function isNotAvailable(response: IAvailableAnimal | INotAvailableAnimal): response is INotAvailableAnimal {
+	return 'notAvailable' in response
+}
 
-	if(Array.isArray(marks)) {
-		marksLog = marks.join(', ');
-	} else if(typeof marks === 'string') {
-		marksLog = marks;
+
+function checkAnimalData(animal: IAvailableAnimal | INotAvailableAnimal = {
+	message: 'not available',
+	nextUpdateIn: new Date(2012, 0, 1),
+	notAvailable: true
+}): IAvailableAnimal | string {
+	if(isAvailable(animal)) {
+		return animal;
+	} else if (isNotAvailable(animal)) {
+		return `${animal.message}, you can try in ${animal.nextUpdateIn}`;
 	} else {
-		marksLog = "Unsupported type of marks";
+		return animal;
 	}
-
-	console.log(`
-	Media ${name}${format} is ${type}
-    	Marks: ${marksLog}
-    	Subtitles: ${subtitles ?? "none"}`);
-    // помните что это за оператор ??
-
-	return "Media started";
 }
 
-playMedia({
-	name: "WoW",
-	format: FormatsOfMedia.mp4,
-	type: TypesOfMedia.audio,
-	subtitles: "hmhmhm hmhmhm doh",
-	marks: ["4:30", "5:40"],
-});
+
+let animalAvalRes: IAvailableAnimal = {
+	animal:  'cat',
+	breed: 'string',
+	sterilized: 'yes',
+	location: 'Liverpole',
+	age: 5,
+	available: true
+}
+
+let animalNotAvalRes: INotAvailableAnimal = {
+	message: 'not available',
+	nextUpdateIn: new Date(2012, 0, 1),
+	notAvailable: true
+}
+
+console.log(checkAnimalData(animalAvalRes));
+
