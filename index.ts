@@ -1,61 +1,91 @@
-interface IAnimals {
-	animal: 'cat' | 'dog' | 'bird',
-    breed: string,
-    sterilized?: string
+// Последовательность действий:
+// 1) Происходит submit любой из форм
+// 2) Все данные из 4х полей со страницы переходят в свойства объекта formData
+// 3) Запускается функция validateFormData с этим объектом, возвращает true/false
+// 4) Если на предыдущем этапе true, то запускается функция checkFormData с этим объектом
+
+interface IFormData {
+	email: string,
+	title: string,
+	text: string,
+	checkbox: boolean,
 }
 
-// Response #1
-interface IAvailableAnimal extends IAnimals{
-	location: string,
-	age?: number,
-	available: boolean
-}
+const btns = document.querySelectorAll('button');
+btns.forEach(btn => btn.addEventListener('click', (e) => {
+	e.preventDefault();
+	const formData = updateFormData();
+	if(validateFormData(formData)) {
+		checkFormData(formData);
+	} 
+}));
 
-// Response #2
-interface INotAvailableAnimal {
-	message: string,
-	nextUpdateIn: Date,
-	notAvailable: boolean
-}
-
-function isAvailable(response: IAvailableAnimal | INotAvailableAnimal): response is IAvailableAnimal {
-	return "available" in response
-}
-
-function isNotAvailable(response: IAvailableAnimal | INotAvailableAnimal): response is INotAvailableAnimal {
-	return 'notAvailable' in response
-}
-
-
-function checkAnimalData(animal: IAvailableAnimal | INotAvailableAnimal = {
-	message: 'not available',
-	nextUpdateIn: new Date(2012, 0, 1),
-	notAvailable: true
-}): IAvailableAnimal | string {
-	if(isAvailable(animal)) {
-		return animal;
-	} else if (isNotAvailable(animal)) {
-		return `${animal.message}, you can try in ${animal.nextUpdateIn}`;
-	} else {
-		return animal;
+function updateFormData(): IFormData {
+	const email = document.querySelector('#email') as HTMLInputElement;
+	const title = document.querySelector('#title') as HTMLInputElement;
+	const text =  document.querySelector('#text') as HTMLTextAreaElement;
+	const checkbox = document.querySelector('#checkbox') as HTMLInputElement;
+	return {
+		email: email ? email.value : "",
+		title: title ? title.value : "",
+		text: text ? text.value : "",
+		checkbox: checkbox ? checkbox.checked : false,
 	}
 }
 
-
-let animalAvalRes: IAvailableAnimal = {
-	animal:  'cat',
-	breed: 'string',
-	sterilized: 'yes',
-	location: 'Liverpole',
-	age: 5,
-	available: true
+function validateFormData(data: IFormData): boolean {
+	// Если каждое из свойств объекта data правдиво...
+	for(let el in data) {
+		if(!data[el as keyof IFormData]) {
+			console.log("Please, complete all fields");
+			createWarning(true, "Please, complete all fields");
+			return false;
+		} else {
+			continue;
+		}
+	}
+	createWarning(false);
+	return true;
 }
 
-let animalNotAvalRes: INotAvailableAnimal = {
-	message: 'not available',
-	nextUpdateIn: new Date(2012, 0, 1),
-	notAvailable: true
+function checkFormData(data: IFormData): boolean {
+	const { email } = data;
+	const emails: string[] = ["example@gmail.com", "example@ex.com", "admin@gmail.com"];
+
+	// Если email совпадает хотя бы с одним из массива
+	const filteredEmails = emails.filter(el => el === email);
+	if (filteredEmails.length > 0) {
+		console.log("This email is already exist");
+		createWarning(true, "This email is already exist");
+		return false;
+	} else {
+		console.log("Posting data...");
+		createWarning(true, "Posting data...");
+
+		setTimeout(() => {
+			const forms = document.querySelectorAll("form");
+			forms.forEach(form => {
+				form.reset();
+			}); 
+			createWarning(false);
+		}, 2000);
+
+		return true;
+	}
 }
 
-console.log(checkAnimalData(animalAvalRes));
-
+function createWarning(flag: boolean = false, msg: string = "") {
+	let p = document.querySelector('#warningFlag') as HTMLParagraphElement;
+	if(p) {
+		p.remove();
+	} 
+	if (flag) {
+		let newP = document.createElement('p');
+		newP.id = 'warningFlag';
+		newP.textContent = msg;
+		const body = document.querySelector('body');
+		if(body) {
+			body.append(newP);
+		} 
+	} 
+}
